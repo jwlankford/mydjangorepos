@@ -1,15 +1,20 @@
 from django.shortcuts import render
 from .models import Module4
+from django.db import models
 
 def display_grades(request):
-    grades = [ 34,45,67,89,90]
-    grades2 = Module4.objects.values_list('grade', flat=True)
-    gcount = grades2
-    print(grades2)
-    min_grade = min(grades)
-    max_grade = max(grades)
-    avg_grade = sum(grades) / len(grades)
-    return render(request, 'grades.html', {'min': min_grade, 'max': max_grade, 'avg': avg_grade, 'grades': grades2, 'gradecount': gcount})
+    grades = Module4.objects.all()
+    grades_count = grades.count()
+    min_grade = grades.aggregate(min_grade=models.Min('grade'))['min_grade']
+    max_grade = grades.aggregate(max_grade=models.Max('grade'))['max_grade']
+    avg_grade = grades.aggregate(avg_grade=models.Avg('grade'))['avg_grade']
 
-# def display_grades(request):
-#     return render(request, 'grades.html', {'grades': Module4.objects.all()})
+    context = {
+        'grades': grades,
+        'grades_count': grades_count,
+        'min': min_grade,
+        'max': max_grade,
+        'avg': round(avg_grade),
+    }
+
+    return render(request, 'grades.html', context)
